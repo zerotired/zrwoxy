@@ -1,73 +1,83 @@
+-- This is zrwoxy, a trolling HTTP proxy.
+-- Manipulate HTTP and HTML content using Nginx and Lua.
 
--- ngx.say("hello zrw")
-
-
-
-      -- For simple singleshot requests, use the URI interface.
-      ngx.req.read_body()
-      local body = ngx.req.get_body_data()
-      local uri = ngx.var.scheme .. '://' .. ngx.var.host .. ngx.var.request_uri
-      
-	
+-- HTTP and HTML libraries
+-- https://github.com/pintsized/lua-resty-http
+-- https://github.com/craigbarnes/lua-gumbo
+local http = require("resty.http")
+local gumbo = require("gumbo")
 
 
-	local htmlparser = require("htmlparser")
+-- Read request body and request URI
+ngx.req.read_body()
+local body = ngx.req.get_body_data()
+local uri = ngx.var.scheme .. '://' .. ngx.var.host .. ngx.var.request_uri
 
 
+-- *Request* body manipulation would be super evil
+-- if body ~= nil then
+--     body = body:gsub("1996","2017")
+-- end
 
-      local http = require "resty.http"
-      local httpc = http.new()
-      local res, err = httpc:request_uri(uri, {
-        method = ngx.var.request_method,
-	body = body,
-	headers = ngx.req.get_headers(),
 
-        --headers = {
-        --  ["Content-Type"] = "application/x-www-form-urlencoded",
-        --}
-      })
+-- Proxy HTTP request
+local httpc = http.new()
+local res, err = httpc:request_uri(uri, {
+    method = ngx.var.request_method,
+    body = body,
+    headers = ngx.req.get_headers(),
+})
 
-      if not res then
-        ngx.say("failed to request: ", err)
-        return
-      end
-
-      -- In this simple form, there is no manual connection step, so the body is read
-      -- all in one go, including any trailers, and the connection closed or keptalive
-      -- for you.
-
-      ngx.status = res.status
-
-      for key,value in pairs(res.headers) do
-	ngx.header[key] = value
-      end
-
-if res.body ~= nil then
---	res.body = res.body:gsub("1996","2017")
+if not res then
+    ngx.say("failed to request: ", err)
+    return
 end
 
+
+-- Propagate response status
+ngx.status = res.status
+
+-- Propagate response headers
+for key, value in pairs(res.headers) do
+    ngx.header[key] = value
+end
+
+
+-- Response body manipulation, only for HTML
+-- TODO: Also handle gzipped responses by deflating them
+local is_html = string.find(ngx.header["Content-Type"], "text/html", 1, true) ~= nil
 local is_gzip = ngx.header["Content-Encoding"] == "gzip"
-if not is_gzip and string.find(ngx.header["Content-Type"], "text/html", 1, true) ~= nil then
+if is_html and not is_gzip then
 
-	ngx.header["Content-Length"] = nil
+    -- When manipulating the response body, we should reset the Content-Length.
+    -- Otherwise, clients would stall on receiving the response.
+    ngx.header["Content-Length"] = nil
 
-	local gumbo = require "gumbo"
-	local document = assert(gumbo.parse(res.body))
+    -- Parse HTML into DOM
+    local document = assert(gumbo.parse(res.body))
 
-	for node in document.body:walk() do
-	    -- if node.nodeType == gumbo.Node.TEXT_NODE then
-	    if node.nodeType == 3 then 
-		node.data = node.data:gsub("1996", "2018")
-	    end
-	end
+    -- Traverse DOM and manipulate text nodes
+    for node in document.body:walk() do
+        -- Node.TEXT_NODE == 3
+        -- See also https://craigbarnes.gitlab.io/lua-gumbo/#node
+        if node.nodeType == 3 then
+    	   node.data = node.data:gsub("1996", "2018")
+        end
+    end
 
-        local style = document:createElement("style")
-        local content = document:createTextNode("body { background: green; font-style: italic ; font-size: x-large;}")
-        style:appendChild(content)
-        document.head:appendChild(style)
+    -- Inject CSS style as last element into <head></head>
+    local css = "body { background: red; font-style: italic; font-size: x-large; }"
+    local style = document:createElement("style")
+    local content = document:createTextNode(css)
+    style:appendChild(content)
+    document.head:appendChild(style)
 
-	ngx.say(document:serialize())
+    -- Propagate modified response
+    ngx.say(document:serialize())
+
 else
-	ngx.say(res.body)
-end
 
+    -- Propagate verbatim response
+    ngx.say(res.body)
+
+end
