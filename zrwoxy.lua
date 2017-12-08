@@ -1,5 +1,5 @@
 -- This is zrwoxy, a trolling HTTP proxy.
--- Manipulate HTTP and HTML content using Nginx and Lua.
+-- Manipulate HTTP traffic and HTML content using Nginx and Lua.
 
 -- HTTP and HTML libraries
 -- https://github.com/pintsized/lua-resty-http
