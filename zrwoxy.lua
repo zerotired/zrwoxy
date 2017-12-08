@@ -24,8 +24,8 @@ local uri = ngx.var.scheme .. '://' .. ngx.var.host .. ngx.var.request_uri
 local httpc = http.new()
 local res, err = httpc:request_uri(uri, {
     method = ngx.var.request_method,
-    body = body,
     headers = ngx.req.get_headers(),
+    body = body,
 })
 
 if not res then
@@ -49,10 +49,6 @@ local is_html = string.find(ngx.header["Content-Type"], "text/html", 1, true) ~=
 local is_gzip = ngx.header["Content-Encoding"] == "gzip"
 if is_html and not is_gzip then
 
-    -- When manipulating the response body, we should reset the Content-Length.
-    -- Otherwise, clients would stall on receiving the response.
-    ngx.header["Content-Length"] = nil
-
     -- Parse HTML into DOM
     local document = assert(gumbo.parse(res.body))
 
@@ -72,8 +68,17 @@ if is_html and not is_gzip then
     style:appendChild(content)
     document.head:appendChild(style)
 
-    -- Propagate modified response
-    ngx.say(document:serialize())
+    -- Serialize DOM to HTML
+    local body = document:serialize()
+
+    -- When manipulating the response body, we should properly account
+    -- for the changed Content-Length. Otherwise, clients will stall
+    -- on receiving the response if the manipulated response payload
+    -- is shorter than before.
+    ngx.header["Content-Length"] = string.len(body)
+
+    -- Propagate modified response body
+    ngx.say(body)
 
 else
 
