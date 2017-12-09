@@ -53,4 +53,18 @@ See also https://github.com/openresty/replace-filter-nginx-module.
 *****
 Setup
 *****
-TODO.
+Todo.
+
+
+****
+Todo
+****
+- Use "zrwoxy" as a library.
+- Provide different examples for content manipulation
+
+    - Font replacement
+    - Consonant removal
+    - Image swapping
+    - Image painting
+
+- Improve documentation.
