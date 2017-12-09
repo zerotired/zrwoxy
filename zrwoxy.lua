@@ -29,7 +29,7 @@ local res, err = httpc:request_uri(uri, {
 })
 
 if not res then
-    ngx.say("failed to request: ", err)
+    ngx.say("Request failed: ", err)
     return
 end
 
