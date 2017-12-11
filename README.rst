@@ -82,20 +82,3 @@ you can find respective ``replace_filter`` configuration directives in ``nginx.c
 References
 ==========
 - https://openresty-reference.readthedocs.io/en/latest/Lua_Nginx_API/
-
-Todo
-====
-- [o] Use "zrwoxy" as a library
-- [o] Provide different examples for content manipulation
-
-    - Font replacement
-    - Vowel removal
-    - Image swapping
-    - Image painting
-    - Restrict manipulation to external circumumstances, e.g.
-      inject rainy pictures if it's actually raining outside ;].
-
-- [o] Improve documentation
-- [o] Provide online demo / gallery
-- [o] Account for proper charset encoding when manipulating content
-- [o] Use request wrapper like https://github.com/Olivine-Labs/lusty-nginx/blob/master/lusty-nginx/request.lua
