@@ -1,5 +1,5 @@
 install:
-	python bootstrap.py
+	python buildout/bootstrap.py
 	bin/buildout
 
 nginx-info:
