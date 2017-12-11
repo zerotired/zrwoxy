@@ -39,6 +39,9 @@ http {
 
         location / {
 
+            # When acting as a forwarding proxy, Nginx needs to resolve hostnames
+            resolver 8.8.8.8;
+
             # Response body manipulation using replace-filter-nginx-module
             #proxy_pass http://$http_host$request_uri;
             #replace_filter 1996 2017 g;
@@ -47,7 +50,6 @@ http {
             # Response body manipulation using Lua
             content_by_lua_file ${buildout:directory}/zrwoxy.lua;
             lua_code_cache off;
-            resolver 8.8.8.8;
 
         }
 

@@ -37,25 +37,54 @@ In order to make this work as a `transparent http proxy <https://en.wikipedia.or
 Alternatively, you can have a look at the `Web Proxy Auto-Discovery Protocol (WPAD) <https://en.wikipedia.org/wiki/Web_Proxy_Auto-Discovery_Protocol>`_ for disseminating proxy information.
 
 
-**********
-References
-**********
+*****
+Setup
+*****
+
+Install
+=======
+::
+
+    make install
+
+Run
+===
+::
+
+    # Display version and configuration options
+    make nginx-info
+
+    # Test configuration
+    make nginx-configtest
+
+    # Run daemon in foreground
+    make nginx-run
+
+Test
+====
+Fire a HTTP request using `HTTPie <https://httpie.org/>`_::
+
+    http --follow --proxy http:http://localhost:8080 http://www.ilo.de/
+
+
+********
+Appendix
+********
+
+Notes
+=====
 We recommend using `OpenResty <https://openresty.org/>`_.
 
 An earlier implementation of this uses the nice
 `replace-filter-nginx-module <https://github.com/openresty/replace-filter-nginx-module>`_,
 you can find respective ``replace_filter`` configuration directives in ``nginx.conf``.
 
+References
+==========
+- https://openresty-reference.readthedocs.io/en/latest/Lua_Nginx_API/
 
-*****
-Setup
-*****
-Todo.
-
-
-****
 Todo
-****
+====
 - [o] Use "zrwoxy" as a library
 - [o] Provide different examples for content manipulation
 
@@ -63,6 +92,10 @@ Todo
     - Vowel removal
     - Image swapping
     - Image painting
+    - Restrict manipulation to external circumumstances, e.g.
+      inject rainy pictures if it's actually raining outside ;].
 
 - [o] Improve documentation
+- [o] Provide online demo / gallery
 - [o] Account for proper charset encoding when manipulating content
+- [o] Use request wrapper like https://github.com/Olivine-Labs/lusty-nginx/blob/master/lusty-nginx/request.lua

@@ -1,3 +1,4 @@
 /bin
 /parts
 .installed.cfg
+nginx.conf
