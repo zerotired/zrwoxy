@@ -7,6 +7,9 @@
 local http = require("resty.http")
 local gumbo = require("gumbo")
 
+-- Logging
+--ngx.log(ngx.INFO, "zrwoxy processing HTTP request")
+
 
 -- Read request body and request URI
 ngx.req.read_body()
@@ -48,6 +51,9 @@ end
 local is_html = ngx.header["Content-Type"] and string.find(ngx.header["Content-Type"], "text/html", 1, true) ~= nil
 local is_gzip = ngx.header["Content-Encoding"] == "gzip"
 if is_html and not is_gzip then
+
+    -- Logging
+    ngx.log(ngx.INFO, "zrwoxy manipulating HTTP response")
 
     -- Parse HTML into DOM
     local document = assert(gumbo.parse(res.body))
